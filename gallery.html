@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Section Galeri Undangan — Masonry (CSS Columns)</title>
+<style>
+  :root{
+    /* Tema lembut untuk undangan pernikahan */
+    --bg: #0e0f13;                 /* latar belakang halaman (bisa disesuaikan) */
+    --panel: #111622;              /* panel gelap elegan */
+    --ink: #f6f7fb;                /* teks utama */
+    --muted: #a5b1cf;              /* teks sekunder */
+    --rose: #efcfe3;               /* aksen pink muda */
+    --rose-ink: #3c2a3b;           
+    --gold: #f7e0a3;               /* aksen keemasan */
+    --gap: 14px;                   /* jarak antar item */
+    --radius: 16px;                /* radius sudut foto */
+    --shadow: 0 12px 30px rgba(0,0,0,.35);
+  }
+  html,body{height:100%}
+  body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, "Helvetica Neue", Arial; color:var(--ink); background:
+    radial-gradient(900px 500px at -10% -20%, #172443 0%, transparent 40%),
+    radial-gradient(800px 480px at 110% 10%, #1a2d56 0%, transparent 45%),
+    linear-gradient(180deg, #0b1120, #0e0f13);}
+
+  /* ====== Section Galeri ====== */
+  .section{padding: clamp(28px, 6vw, 64px) 20px}
+  .container{max-width: 1100px; margin-inline: auto}
+  .card{background: color-mix(in oklab, var(--panel) 90%, black); border-radius: 22px; padding: clamp(18px, 2.8vw, 26px); box-shadow: var(--shadow); position: relative; overflow: hidden}
+
+  /* dekorasi halus */
+  .card::before{content:""; position:absolute; inset:auto -20% -20% auto; width: 420px; height: 420px; background: radial-gradient(closest-side, rgba(239,207,227,.25), transparent 70%); transform: rotate(25deg)}
+  .card::after{content:""; position:absolute; inset:-25% auto auto -20%; width: 520px; height: 520px; background: radial-gradient(closest-side, rgba(247,224,163,.18), transparent 70%); filter: blur(2px)}
+
+  .section .eyebrow{display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:12px; color: var(--rose); letter-spacing:.12em; text-transform: uppercase; background: rgba(239,207,227,.16); border:1px solid rgba(239,207,227,.32); padding:6px 10px; border-radius: 999px}
+  .heading{margin: 12px 0 8px; font-size: clamp(22px, 4vw, 34px); font-weight: 800; letter-spacing: .2px}
+  .sub{margin:0 0 14px; color: var(--muted)}
+
+  /* ====== Masonry (CSS Columns) ====== */
+  .masonry{column-width: 280px; column-gap: var(--gap)}
+  @media (max-width: 960px){ .masonry{ column-width: 240px } }
+  @media (max-width: 640px){ .masonry{ column-width: 180px } }
+
+  .masonry figure{ display:inline-block; width:100%; margin: 0 0 var(--gap) 0; border-radius: var(--radius); overflow:hidden; background:#0b1220; box-shadow: 0 8px 22px rgba(0,0,0,.30); position:relative; 
+    break-inside: avoid; -webkit-column-break-inside: avoid; -moz-column-break-inside: avoid; }
+  .masonry img{ display:block; width:100%; height:auto; object-fit:cover; filter:saturate(1.05) }
+  .masonry figcaption{ position:absolute; left:0; right:0; bottom:0; padding:10px 12px; font-size:12px; color:#e7ecff; background: linear-gradient(180deg, transparent, rgba(0,0,0,.55)); opacity:0; transition: opacity .25s ease }
+  .masonry figure:hover figcaption{ opacity:1 }
+  .masonry figure::after{ content:""; position:absolute; inset:0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); pointer-events:none }
+
+  /* ====== Lightbox sederhana ====== */
+  .lightbox{ position:fixed; inset:0; display:grid; place-items:center; background: rgba(0,0,0,.85); z-index: 100; }
+  .lightbox[hidden]{ display:none }
+  .lightbox .stage{ position:relative; max-width: min(96vw, 1200px); max-height: 88vh }
+  .lightbox img{ display:block; max-width:100%; max-height: 88vh; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6) }
+  .lightbox .caption{ margin-top: 8px; text-align:center; color:#dbe6ff; font-size:13px }
+  .lightbox .nav{ position:absolute; inset:0; display:flex; align-items:center; justify-content:space-between; pointer-events:none }
+  .lightbox button{ pointer-events:auto; appearance:none; border:1px solid rgba(255,255,255,.12); background: rgba(18,25,40,.55); color:#fff; border-radius: 12px; padding: 10px 12px; font-weight:700; cursor:pointer }
+  .lightbox .close{ position:absolute; right:0; top:-46px }
+  .kbd{ font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas; background:#0b1220; padding: 2px 6px; border-radius:6px; border:1px solid #1f2b46; color:#9fb4da }
+
+  /* animasi halus saat muncul */
+  .fade-in{ opacity:0; transform: translateY(12px); transition: opacity .5s ease, transform .5s ease }
+  .fade-in.is-visible{ opacity:1; transform: translateY(0) }
+
+  @media (prefers-reduced-motion: reduce){
+    .fade-in{ opacity:1; transform:none; transition:none }
+    .masonry figcaption{ transition:none }
+  }
+</style>
+</head>
+<body>
+
+<!--
+  Cara pakai di websitemu:
+  1) Copy <section id="galeri"> … </section> ke halaman undangan.
+  2) Copy <style> di atas ke CSS globalmu (atau tetap inline).
+  3) Ganti src gambar ke file milikmu (./img/galeri/...).
+  4) Opsi: ganti warna aksen di :root (mis. --rose, --gold).
+-->
+
+<section class="section" id="galeri" aria-label="Galeri Foto">
+  <div class="container">
+    <div class="card">
+      <span class="eyebrow">Galeri Kami</span>
+      <h2 class="heading">Momen Terindah <span style="color:var(--gold)">A &amp; B</span></h2>
+      <p class="sub">Kilasan kebahagiaan pertunangan, akad, hingga resepsi. Terima kasih telah menjadi bagian dari cerita kami.</p>
+
+      <div class="masonry" id="masonry">
+        <!--
+          Tips: untuk kualitas terbaik, simpan foto portrait/landscape campur agar masonry lebih dinamis.
+          Ganti sumber gambar di bawah ini sesuai kebutuhanmu.
+        -->
+        <figure class="fade-in"><img src="https://picsum.photos/id/1018/800/1200" width="800" height="1200" loading="lazy" alt="Pasangan berjalan di taman" /><figcaption>Taman Sore</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1025/1000/667" width="1000" height="667" loading="lazy" alt="Cincin pernikahan di bunga" /><figcaption>Detail Cincin</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1035/1200/900" width="1200" height="900" loading="lazy" alt="Senja di tepi danau" /><figcaption>Prewedding Danau</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1033/900/1200" width="900" height="1200" loading="lazy" alt="Pose candid memegang buket" /><figcaption>Si Candid Manis</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1040/1100/733" width="1100" height="733" loading="lazy" alt="Dekorasi lampu gantung" /><figcaption>Glimmer Night</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1041/1200/900" width="1200" height="900" loading="lazy" alt="Jembatan kayu" /><figcaption>Bridge of Love</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1050/1000/1200" width="1000" height="1200" loading="lazy" alt="Pelukan hangat" /><figcaption>Pelukan</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1069/1200/800" width="1200" height="800" loading="lazy" alt="Toast bersama sahabat" /><figcaption>Cheers!</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1074/1000/1500" width="1000" height="1500" loading="lazy" alt="Gaun berputar" /><figcaption>Twirl</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1080/1200/900" width="1200" height="900" loading="lazy" alt="Momen di pelaminan" /><figcaption>Pelaminan</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1084/1200/800" width="1200" height="800" loading="lazy" alt="Foto keluarga" /><figcaption>Keluarga</figcaption></figure>
+        <figure class="fade-in"><img src="https://picsum.photos/id/1082/900/1200" width="900" height="1200" loading="lazy" alt="Siluet senja" /><figcaption>Siluet</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== Lightbox ====== -->
+<div class="lightbox" id="lightbox" hidden>
+  <div class="stage">
+    <img id="lbImg" alt="Preview foto" />
+    <div class="nav">
+      <button type="button" id="prevBtn" aria-label="Foto sebelumnya">←</button>
+      <button type="button" id="nextBtn" aria-label="Foto berikutnya">→</button>
+    </div>
+    <div class="caption" id="lbCap"></div>
+    <button type="button" class="close" id="closeBtn" aria-label="Tutup"><span class="kbd">Esc</span></button>
+  </div>
+</div>
+
+<script>
+  // ====== Interaksi: Lightbox + Navigasi ======
+  const list = Array.from(document.querySelectorAll('#masonry figure'));
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  const lbCap = document.getElementById('lbCap');
+  let idx = 0;
+
+  function open(i){ idx = i; const fig = list[idx]; const img = fig.querySelector('img'); lbImg.src = img.currentSrc || img.src; lbImg.alt = img.alt; lbCap.textContent = fig.querySelector('figcaption')?.textContent || ''; lb.hidden = false; document.body.style.overflow = 'hidden'; }
+  function close(){ lb.hidden = true; document.body.style.overflow = '' }
+  function prev(){ idx = (idx - 1 + list.length) % list.length; open(idx) }
+  function next(){ idx = (idx + 1) % list.length; open(idx) }
+
+  list.forEach((fig,i)=> fig.addEventListener('click', ()=> open(i)) );
+  document.getElementById('closeBtn').addEventListener('click', close);
+  document.getElementById('prevBtn').addEventListener('click', (e)=>{ e.stopPropagation(); prev(); });
+  document.getElementById('nextBtn').addEventListener('click', (e)=>{ e.stopPropagation(); next(); });
+  lb.addEventListener('click', (e)=>{ if(e.target === lb) close() });
+  window.addEventListener('keydown', (e)=>{
+    if(lb.hidden) return;
+    if(e.key === 'Escape') close();
+    if(e.key === 'ArrowLeft') prev();
+    if(e.key === 'ArrowRight') next();
+  });
+
+  // ====== Animasi Muncul: IntersectionObserver ======
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(ent=>{
+      if(ent.isIntersecting){ ent.target.classList.add('is-visible'); io.unobserve(ent.target); }
+    })
+  },{rootMargin:'80px'});
+  document.querySelectorAll('.fade-in').forEach(el=> io.observe(el));
+</script>
+
+</body>
+</html>
