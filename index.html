@@ -68,6 +68,14 @@
     .fade-in{ opacity:1; transform:none; transition:none }
     .masonry figcaption{ transition:none }
   }
+  
+  /* ====== Force Mobile Mode (lock gallery to phone layout across devices) ====== */
+  .phone-mode .container{ max-width: 420px; margin-inline: auto }
+  /* Default: 2 kolom seperti HP modern (≈360–420px) */
+  .phone-mode .masonry{ column-width: 170px; column-gap: 12px }
+  .phone-mode .masonry figure{ border-radius: 14px }
+  /* Opsi: 1 kolom penuh — tambahkan class `one-col` pada <section> */
+  .phone-mode.one-col .masonry{ column-count: 1; column-width: auto }
 </style>
 </head>
 <body>
@@ -80,7 +88,7 @@
   4) Opsi: ganti warna aksen di :root (mis. --rose, --gold).
 -->
 
-<section class="section" id="galeri" aria-label="Galeri Foto">
+<section class="section phone-mode" id="galeri" aria-label="Galeri Foto">
   <div class="container">
     <div class="card">
       <span class="eyebrow">Galeri Kami</span>
